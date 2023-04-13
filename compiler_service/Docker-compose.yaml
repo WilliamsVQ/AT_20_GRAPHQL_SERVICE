@@ -1,0 +1,8 @@
+version: '3'
+services:
+    compiler:
+        build: .
+        ports:
+            - '5000:9292'
+        environment:
+            - UPLOADS_PATH = ./src/services/compilers/temp_saved_files/
