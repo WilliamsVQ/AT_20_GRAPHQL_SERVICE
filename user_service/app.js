@@ -63,7 +63,6 @@ import { expressMiddleware } from '@apollo/server/express4';
 import cors  from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-
 import  graphqlUploadExpress  from 'graphql-upload/graphqlUploadExpress.mjs';
 
 export async function startApolloServer(typeDefs, resolvers){
@@ -77,7 +76,8 @@ export async function startApolloServer(typeDefs, resolvers){
 
     //mongodb://root:example@mongo:27017/myapp?authSource=admin&directConnection=true
     //mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true
-    mongoose.connect('mongodb://root:example@mongo:27017/myapp?authSource=admin&directConnection=true')
+    //mongodb://localhost/user
+    mongoose.connect('mongodb://localhost/user')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
