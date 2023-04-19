@@ -11,8 +11,8 @@ import bcrypt from 'bcrypt';
 import twilio from "twilio";
 import dotenv from 'dotenv';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+//const accountSid = process.env.TWILIO_ACCOUNT_SID;
+//const authToken = process.env.TWILIO_AUTH_TOKEN;
 dotenv.config();
 const __dirname = path.resolve();
 const saveImagesWithStream = ({ filename, mimetype, stream }) => {
@@ -43,11 +43,12 @@ export const resolvers = {
             console.log(filePath);
             return filePath;
         },
-    },  
+    },
 
     Mutation: {
 
         compiler: async (parent, { file, language }) => {
+            console.log(file,language)
             const { filename, mimetype, createReadStream } = await file;
             let data = '';
             const stream = createReadStream();
@@ -61,13 +62,30 @@ export const resolvers = {
                   })
                 .catch(function (error) {
                     if (error.response) {
-                       data = (error.response.data.stdout) 
+                       data = (error.response.data.stdout)
                     }
             });
             return data
         },
 
-        newMeeting: async (parent, args, context, info) => {
+        async createQuestion(_, { question, test, imgSrc, type, answer, options }) {
+            try {
+              const response = await axios.post('http://localhost:8820/api/v1.0/question/', {
+                question,
+                test,
+                imgSrc,
+                type,
+                answer,
+                options,
+              });
+              console.log(response.data)
+              return response.data;
+            } catch (error) {
+              console.error(error.response.data);
+              throw new Error('Failed to create question');
+            }
+          },
+       /* newMeeting: async (parent, args, context, info) => {
             const config = {
               method: 'post',
               maxBodyLength: Infinity,
@@ -95,7 +113,7 @@ export const resolvers = {
               console.log(error);
               return error;
             }
-          },
+          },*/
 
         uploadNote: async (_, {userId, nameTest, answers, score}) => {
             const note = new Note({
@@ -107,8 +125,8 @@ export const resolvers = {
             const noteSaved = await note.save();
             return noteSaved
         },
-        
-    
+
+
 
         createRole: async (_, {name}) => {
             const role = new Role({
@@ -131,27 +149,28 @@ export const resolvers = {
             age = 999
             const user = new User({
                 globalID,
-                firstName, 
+                firstName,
                 lastName,
                 userName,
                 firstPassword,
                 password,
-                email, 
-                phone, 
+                email,
+                phone,
                 country,
-                city, 
+                city,
                 age,
                 roleId,
                 photo,
             })
-            const client = twilio(accountSid, authToken);
+
+           /* const client = twilio(accountSid, authToken);
                 client.messages
                     .create({
                         from: 'whatsapp:+14155238886',
                         body: 'Dear applicant, you are a candidate for the Pepito bootcamp, your username is the email address you used to register and your password is '+"*"+firstPassword+"*",
                         to: "whatsapp:"+phone
                     })
-                    .then(message => console.log(message.sid, message.to));
+                    .then(message => console.log(message.sid, message.to));*/
             const savedUser = await user.save();
             return savedUser;
             }
@@ -164,7 +183,7 @@ export const resolvers = {
             console.log(userLogin);
             if (!userLogin || !userLogin.firstPassword) {
                 return { message: 'User not found' };
-              } else {         
+              } else {
                   if (password === userLogin.firstPassword) {
                     return { message: 'Login Succesful!', info: userLogin };
                   } else {
@@ -179,7 +198,7 @@ export const resolvers = {
             await Role.deleteMany({userId: deleteUser._id})
             await Note.deleteMany({userId: deleteUser._id})
             return deleteUser;
-        },  
+        },
 
         deleteRole: async (_, {_id}) => {
             const deleteRole = await Role.findByIdAndDelete(_id);

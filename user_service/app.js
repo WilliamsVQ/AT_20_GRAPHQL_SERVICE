@@ -42,9 +42,9 @@ export async function startApolloServer(typeDefs, resolvers){
           cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
         }
       });
-      
+
       const upload = multer({ storage: storage });
-      
+
       app.post('/upload', upload.single('photo'), (req, res) => {
         res.json({ file: req.file });
       });
@@ -52,7 +52,7 @@ export async function startApolloServer(typeDefs, resolvers){
       app.get('/uploads/:filename', (req, res) => {
         const filename = req.params.filename;
         const filePath = path.join(__dirname, 'uploads', filename);
-      
+
         res.sendFile(filePath);
       });*/
 
@@ -77,20 +77,20 @@ export async function startApolloServer(typeDefs, resolvers){
     //mongodb://root:example@mongo:27017/myapp?authSource=admin&directConnection=true
     //mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true
     //mongodb://localhost/user
-    mongoose.connect('mongodb://localhost/user')
+    mongoose.connect('mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
     const server = new ApolloServer({  typeDefs, resolvers, });
     await server.start();
-    
-    
+
+
     app.use(graphqlUploadExpress());
     server.applyMiddleware({ app });
 
-    
+
     app.listen(port, () => {
   console.log( `Graphql server on port http://localhost:5000/graphql`);
-  
+
   });
 }
