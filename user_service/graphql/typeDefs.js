@@ -12,13 +12,14 @@ export const typeDefs = gql`
         note(_id: ID): Note
         notes: [Note]
         photo(filename: String): String
-
+        getMeetings: [Meeting]
+        
     }
     type Mutation {
         createRole(name: String): Role
         createUser(
             globalID: String,
-            firstName: String,
+            firstName: String, 
             lastName: String,
             userName: String,
             firstPassword: String,
@@ -28,16 +29,16 @@ export const typeDefs = gql`
             country: String,
             city: String,
             age: Int,
-            roleId: ID,
+            roleId: ID, 
             photo: String): User
-
+        
         uploadNote(userId: ID, nameTest: String, answers: [String], score: String): Note
-
+        
         login(userName: String, email: String, password: String): LoginResponse
-
-        updateRole(_id: ID, name: String): Role
-        updateUser(_id: ID,
-            firstName: String,
+        
+        updateRole(_id: ID, name: String): Role        
+        updateUser(_id: ID, 
+            firstName: String, 
             lastName: String,
             userName: String,
             firstPassword: String,
@@ -52,7 +53,9 @@ export const typeDefs = gql`
         deleteUser(_id: ID): User
         singleUpload(file: Upload): String
         compiler(file: Upload!, language: String!): String
+        convertImage(image: Upload!, width: Int!, height: Int!): ConvertedResult!
         newMeeting(data: String): String
+
     }
     type Role {
         _id: ID
@@ -93,6 +96,47 @@ export const typeDefs = gql`
         answers: [String]
         score: String
     }
+
+    type ConvertedResult {
+        url: String!
+    }
+
+    type Meeting {
+        _id: ID!
+        id: String!
+        host_global_id: [Host!]!
+        guest_global_id: [Guest!]!
+        meeting_name: String!
+        description: String!
+        date: String!
+        start_time: String!
+        end_time: String!
+        time_zone: [TimeZone!]!
+        active: Boolean
+        createdAt: String!
+        updatedAt: String!
+    }
+
+    type Host {
+        id: String!
+        name: String!
+        phone: String!
+        _id: ID!
+    }
+
+    type Guest {
+        id: String!
+        name: String!
+        phone: String!
+        _id: ID!
+    }
+
+    type TimeZone {
+        value: String!
+        label: String!
+        _id: ID!
+    }   
+
 
 ##questionnaire
 type Question {

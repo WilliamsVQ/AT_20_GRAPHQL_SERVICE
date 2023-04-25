@@ -63,11 +63,53 @@ export const resolvers = {
               throw new Error(error.type);
             }
           },
-
-
+          getMeetings: async () => {
+            const config = {
+              method: 'get',
+              maxBodyLength: Infinity,
+              url: 'http://localhost:8080/api/v1/interview/interviews',
+              headers: { }
+            };
+      
+            try {
+              const response = await axios.request(config);
+              return response.data;
+            } catch (error) {
+              console.error(error);
+              return [];
+            }
+          }
     },
 
     Mutation: {
+
+      convertImage: async (_, { image, width, height }) => {
+        try {
+            console.log("entré");
+          const { filename, mimetype, createReadStream } = await image;
+          const stream = createReadStream();
+          const upload = await saveImagesWithStream({ filename, mimetype, stream });
+          const data = new FormData();
+          //const filePath = path.join(uploadDir, image.filename);
+          //await image.createReadStream().pipe(fs.createWriteStream(filePath));
+          data.append('image', fs.createReadStream(`${__dirname}\\uploads\\${upload.name}`));
+          data.append('width', String(width));
+          data.append('height', String(height));
+  
+          const response = await axios.post('http://localhost:9090/api/v1.0/convert_image/converter', data, {
+            headers: { 
+              ...data.getHeaders()
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+          });
+          console.log(response.data);
+          return { url: response.data.downloadUrl };
+        } catch (error) {
+          console.error(error);
+          throw new Error('Failed to convert image.');
+        }
+      },
 
         compiler: async (parent, { file, language }) => {
             console.log(file,language)
@@ -109,6 +151,7 @@ export const resolvers = {
               throw new Error('Failed to create question');
             }
           },
+
         newMeeting: async (parent, args, context, info) => {
             const config = {
               method: 'post',
@@ -123,13 +166,13 @@ export const resolvers = {
               const response = await axios.request(config);
               response.data.guest_global_id.map((item) => {
                 const client = twilio(accountSid, authToken);
-                    client.messages
+                    /*client.messages
                         .create({
                             from: 'whatsapp:+14155238886',
                             body: 'Dear '+item.name+', you have a meeting scheduled for the date '+ response.data.date + ' at '+ response.data.start_time + ' to '+  response.data.end_time,
                             to: "whatsapp:"+item.phone
                         })
-                        .then(message => console.log(message.sid, message.to));
+                        .then(message => console.log(message.sid, message.to));*/
 
               });
               return JSON.stringify(response.data);
@@ -138,6 +181,7 @@ export const resolvers = {
               return error;
             }
           },
+
 
         uploadNote: async (_, {userId, nameTest, answers, score}) => {
             const note = new Note({
@@ -165,36 +209,35 @@ export const resolvers = {
             const userEmailSearch = await User.findOne({'email':email});
             //if (!userNameSearch && !userEmailSearch) {
             if (!userEmailSearch) {
-            //const hashedPassword = await bcrypt.hash(password, 10);
-            firstPassword = "hashedPassword";
+            const hashedPassword = await bcrypt.hash("", 10);
+            firstPassword = hashedPassword;
             password = '';
             globalID = uuidv4();
             userName = uuidv4();
             age = 999
             const user = new User({
                 globalID,
-                firstName,
+                firstName, 
                 lastName,
                 userName,
                 firstPassword,
                 password,
-                email,
-                phone,
+                email, 
+                phone, 
                 country,
-                city,
+                city, 
                 age,
-                roleId,
                 photo,
+                roleId,
             })
-
-            const client = twilio(accountSid, authToken);
+            /*const client = twilio(accountSid, authToken);
                 client.messages
                     .create({
                         from: 'whatsapp:+14155238886',
                         body: 'Dear applicant, you are a candidate for the Pepito bootcamp, your username is the email address you used to register and your password is '+"*"+firstPassword+"*",
                         to: "whatsapp:"+phone
                     })
-                    .then(message => console.log(message.sid, message.to));
+                    .then(message => console.log(message.sid, message.to));*/
             const savedUser = await user.save();
             return savedUser;
             }
