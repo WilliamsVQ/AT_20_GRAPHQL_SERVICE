@@ -11,8 +11,8 @@ import bcrypt from 'bcrypt';
 import twilio from "twilio";
 import dotenv from 'dotenv';
 
-//const accountSid = process.env.TWILIO_ACCOUNT_SID;
-//const authToken = process.env.TWILIO_AUTH_TOKEN;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 dotenv.config();
 const __dirname = path.resolve();
 const saveImagesWithStream = ({ filename, mimetype, stream }) => {
@@ -43,6 +43,28 @@ export const resolvers = {
             console.log(filePath);
             return filePath;
         },
+        getQuestionnaire: async (_, { test }) => {
+          try {
+            const response = await fetch(`http://localhost:8820/api/v1.0/questionnaire/${test}`);
+            const question = await response.json();
+            console.log(question)
+            return question;
+          } catch (error) {
+            throw new Error(error.type);
+          }
+        },
+        getQuestionByID: async (_, { id }) => {
+            try {
+              const response = await fetch(`http://localhost:8820/api/v1.0/question/${id}`);
+              const question = await response.json();
+              console.log(question)
+              return question;
+            } catch (error) {
+              throw new Error(error.type);
+            }
+          },
+
+
     },
 
     Mutation: {
@@ -85,7 +107,7 @@ export const resolvers = {
               throw new Error('Failed to create question');
             }
           },
-       /* newMeeting: async (parent, args, context, info) => {
+        newMeeting: async (parent, args, context, info) => {
             const config = {
               method: 'post',
               maxBodyLength: Infinity,
@@ -113,7 +135,7 @@ export const resolvers = {
               console.log(error);
               return error;
             }
-          },*/
+          },
 
         uploadNote: async (_, {userId, nameTest, answers, score}) => {
             const note = new Note({
@@ -163,14 +185,14 @@ export const resolvers = {
                 photo,
             })
 
-           /* const client = twilio(accountSid, authToken);
+            const client = twilio(accountSid, authToken);
                 client.messages
                     .create({
                         from: 'whatsapp:+14155238886',
                         body: 'Dear applicant, you are a candidate for the Pepito bootcamp, your username is the email address you used to register and your password is '+"*"+firstPassword+"*",
                         to: "whatsapp:"+phone
                     })
-                    .then(message => console.log(message.sid, message.to));*/
+                    .then(message => console.log(message.sid, message.to));
             const savedUser = await user.save();
             return savedUser;
             }

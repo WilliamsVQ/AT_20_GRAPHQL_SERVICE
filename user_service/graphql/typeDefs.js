@@ -93,6 +93,7 @@ export const typeDefs = gql`
         answers: [String]
         score: String
     }
+
 ##questionnaire
 type Question {
     id: ID
@@ -100,13 +101,13 @@ type Question {
   test: String
   imgSrc: String
   type: String
-  answer: String
+  Answer: String
   options: [Option]
 }
 
 type Option {
-  value: String
-  label: String
+  Value: String
+  Label: String
 }
 
 type QuestionObject {
@@ -115,7 +116,7 @@ type QuestionObject {
   ImgScr: String
   test: String
   type: String
-  answer: String
+  Answer: String
   options: [OptionObject]
 }
 
@@ -125,7 +126,7 @@ type QuestionObjects {
   ImgScr: String
   test: String
   type: String
-  answer: String
+  Answer: String
   options: [OptionObject]
 }
 

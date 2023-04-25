@@ -27,12 +27,6 @@ services:
     environment:
       - REACT_APP_API_URL=http://localhost:5000/api
 
-
-  converter_service:
-    build: ./converter_service
-    ports:
-      - '9090:9090'
-
   compiler_service:
     build: ./compiler_service
     ports:
