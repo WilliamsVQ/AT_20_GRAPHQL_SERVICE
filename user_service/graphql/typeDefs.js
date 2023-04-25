@@ -12,13 +12,13 @@ export const typeDefs = gql`
         note(_id: ID): Note
         notes: [Note]
         photo(filename: String): String
-        
+
     }
     type Mutation {
         createRole(name: String): Role
         createUser(
             globalID: String,
-            firstName: String, 
+            firstName: String,
             lastName: String,
             userName: String,
             firstPassword: String,
@@ -28,16 +28,16 @@ export const typeDefs = gql`
             country: String,
             city: String,
             age: Int,
-            roleId: ID, 
+            roleId: ID,
             photo: String): User
-        
+
         uploadNote(userId: ID, nameTest: String, answers: [String], score: String): Note
-        
+
         login(userName: String, email: String, password: String): LoginResponse
-        
-        updateRole(_id: ID, name: String): Role        
-        updateUser(_id: ID, 
-            firstName: String, 
+
+        updateRole(_id: ID, name: String): Role
+        updateUser(_id: ID,
+            firstName: String,
             lastName: String,
             userName: String,
             firstPassword: String,
@@ -93,4 +93,72 @@ export const typeDefs = gql`
         answers: [String]
         score: String
     }
+
+##questionnaire
+type Question {
+    id: ID
+  question: String
+  test: String
+  imgSrc: String
+  type: String
+  Answer: String
+  options: [Option]
+}
+
+type Option {
+  Value: String
+  Label: String
+}
+
+type QuestionObject {
+  id: ID
+  Question: String
+  ImgScr: String
+  test: String
+  type: String
+  Answer: String
+  options: [OptionObject]
+}
+
+type QuestionObjects {
+  IDQuestions: ID
+  Question: String
+  ImgScr: String
+  test: String
+  type: String
+  Answer: String
+  options: [OptionObject]
+}
+
+type OptionObject {
+  Label: String
+  Value: String
+}
+
+type Query {
+    getQuestion: [Question]
+    getQuestionCount: Int!
+    getQuestions: [Question!]!
+    getQuestionByID(id: ID!): QuestionObject
+    getQuestionnaire(test: String!): [QuestionObjects]
+
+},
+
+type Mutation {
+    createQuestion(
+      question: String,
+      test: String,
+      imgSrc: String,
+      type: String,
+      answer: String,
+      options: [OptionInput]
+    ): Question
+  },
+  input OptionInput {
+    value: String
+    label: String
+  }
+
+
+
 `

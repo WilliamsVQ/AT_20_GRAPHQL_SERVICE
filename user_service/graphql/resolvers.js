@@ -43,11 +43,34 @@ export const resolvers = {
             console.log(filePath);
             return filePath;
         },
-    },  
+        getQuestionnaire: async (_, { test }) => {
+          try {
+            const response = await fetch(`http://localhost:8820/api/v1.0/questionnaire/${test}`);
+            const question = await response.json();
+            console.log(question)
+            return question;
+          } catch (error) {
+            throw new Error(error.type);
+          }
+        },
+        getQuestionByID: async (_, { id }) => {
+            try {
+              const response = await fetch(`http://localhost:8820/api/v1.0/question/${id}`);
+              const question = await response.json();
+              console.log(question)
+              return question;
+            } catch (error) {
+              throw new Error(error.type);
+            }
+          },
+
+
+    },
 
     Mutation: {
 
         compiler: async (parent, { file, language }) => {
+            console.log(file,language)
             const { filename, mimetype, createReadStream } = await file;
             let data = '';
             const stream = createReadStream();
@@ -60,13 +83,32 @@ export const resolvers = {
                     console.log(response.data.stdout);
                 })
                 .catch(function (error) {
+
                     !error.response.data.stdout
                         ? data = error.response.data.error
                         : data = error.response.data.stdout;
+
             });
             return data
         },
 
+        async createQuestion(_, { question, test, imgSrc, type, answer, options }) {
+            try {
+              const response = await axios.post('http://localhost:8820/api/v1.0/question/', {
+                question,
+                test,
+                imgSrc,
+                type,
+                answer,
+                options,
+              });
+              console.log(response.data)
+              return response.data;
+            } catch (error) {
+              console.error(error.response.data);
+              throw new Error('Failed to create question');
+            }
+          },
         newMeeting: async (parent, args, context, info) => {
             const config = {
               method: 'post',
@@ -107,8 +149,8 @@ export const resolvers = {
             const noteSaved = await note.save();
             return noteSaved
         },
-        
-    
+
+
 
         createRole: async (_, {name}) => {
             const role = new Role({
@@ -131,19 +173,20 @@ export const resolvers = {
             age = 999
             const user = new User({
                 globalID,
-                firstName, 
+                firstName,
                 lastName,
                 userName,
                 firstPassword,
                 password,
-                email, 
-                phone, 
+                email,
+                phone,
                 country,
-                city, 
+                city,
                 age,
                 roleId,
                 photo,
             })
+
             const client = twilio(accountSid, authToken);
                 client.messages
                     .create({
@@ -164,7 +207,7 @@ export const resolvers = {
             console.log(userLogin);
             if (!userLogin || !userLogin.firstPassword) {
                 return { message: 'User not found' };
-              } else {         
+              } else {
                   if (password === userLogin.firstPassword) {
                     return { message: 'Login Succesful!', info: userLogin };
                   } else {
@@ -179,7 +222,7 @@ export const resolvers = {
             await Role.deleteMany({userId: deleteUser._id})
             await Note.deleteMany({userId: deleteUser._id})
             return deleteUser;
-        },  
+        },
 
         deleteRole: async (_, {_id}) => {
             const deleteRole = await Role.findByIdAndDelete(_id);
