@@ -64,6 +64,8 @@ import cors  from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import  graphqlUploadExpress  from 'graphql-upload/graphqlUploadExpress.mjs';
+import pino from './loggerService.js';
+const loggerService = pino();
 
 export async function startApolloServer(typeDefs, resolvers){
 
@@ -78,8 +80,8 @@ export async function startApolloServer(typeDefs, resolvers){
     //mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true
     //mongodb://localhost/user
     mongoose.connect('mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true')
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log(err));
+    .then(() => loggerService.info('MongoDB connected'))
+    .catch(err => loggerService.error(err));
 
     const server = new ApolloServer({  typeDefs, resolvers, });
     await server.start();
@@ -90,7 +92,6 @@ export async function startApolloServer(typeDefs, resolvers){
 
 
     app.listen(port, () => {
-  console.log( `Graphql server on port http://localhost:5000/graphql`);
-
+      loggerService.info( `Graphql server on port http://localhost:5000/graphql`);
   });
 }
