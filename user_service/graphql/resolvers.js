@@ -59,11 +59,11 @@ export const resolvers = {
                 const resp = await axios.post('http://localhost:9292/api/v1.0/compiler', form)
                 .then(function (response) {
                     console.log(response.data.stdout);
-                  })
+                })
                 .catch(function (error) {
-                    if (error.response) {
-                       data = (error.response.data.stdout)
-                    }
+                    !error.response.data.stdout
+                        ? data = error.response.data.error
+                        : data = error.response.data.stdout;
             });
             return data
         },
