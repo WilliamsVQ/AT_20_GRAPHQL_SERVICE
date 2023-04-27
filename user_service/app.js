@@ -80,7 +80,7 @@ export async function startApolloServer(typeDefs, resolvers){
     //mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true
     //mongodb://localhost/user
     // mongoose.connect('mongodb://127.0.0.1:27017/myapp?authSource=admin&directConnection=true')
-    mongoose.connect('mongodb://mongo:27017/myapp?authSource=admin&directConnection=true')
+    mongoose.connect(`mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${process.env.MONGO_INITDB_DATABASE}?authSource=admin&directConnection=true`)
     .then(() => loggerService.info('MongoDB connected'))
     .catch(err => loggerService.error(err));
 
