@@ -45,7 +45,7 @@ export const resolvers = {
         },
         getQuestionnaire: async (_, { test }) => {
           try {
-            const response = await fetch(`http://localhost:8820/api/v1.0/questionnaire/${test}`);
+            const response = await fetch(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/questionnaire/${test}`);
             const question = await response.json();
             console.log(question)
             return question;
@@ -55,7 +55,7 @@ export const resolvers = {
         },
         getQuestionByID: async (_, { id }) => {
             try {
-              const response = await fetch(`http://localhost:8820/api/v1.0/question/${id}`);
+              const response = await fetch(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/question/${id}`);
               const question = await response.json();
               console.log(question)
               return question;
@@ -136,7 +136,7 @@ export const resolvers = {
 
         async createQuestion(_, { question, test, imgSrc, type, answer, options }) {
             try {
-              const response = await axios.post('http://localhost:8820/api/v1.0/question/', {
+              const response = await axios.post(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/question/`, {
                 question,
                 test,
                 imgSrc,
