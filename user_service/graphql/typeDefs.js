@@ -14,6 +14,7 @@ export const typeDefs = gql`
         photo(filename: String): String
         myMeetings(_id: ID): [MyMeeting]
         meeting(_id: ID): Meeting
+        getMeetings: [Meeting]
 
     }
     type Mutation {
@@ -54,6 +55,7 @@ export const typeDefs = gql`
         deleteUser(_id: ID): User
         singleUpload(file: Upload): String
         compiler(file: Upload!, language: String!): String
+        convertImage(image: Upload!, width: Int!, height: Int!): ConvertedResult!
         newMeeting(data: String): String
         getToken(id_guest: String, name_guest: String, email_guest: String, host_guest: Boolean, id_meeting: String): String
     }
@@ -121,5 +123,99 @@ export const typeDefs = gql`
         email: String
         host: Boolean
     }
+
+
+    type ConvertedResult {
+        url: String!
+    }
+
+
+    type Host {
+        id: String!
+        name: String!
+        phone: String!
+        _id: ID!
+    }
+
+    type Guest {
+        id: String!
+        name: String!
+        phone: String!
+        _id: ID!
+    }
+
+    type TimeZone {
+        value: String!
+        label: String!
+        _id: ID!
+    }
+
+
+##questionnaire
+type Question {
+    id: ID
+  question: String
+  test: String
+  imgSrc: String
+  type: String
+  Answer: String
+  options: [Option]
+}
+
+type Option {
+  Value: String
+  Label: String
+}
+
+type QuestionObject {
+  id: ID
+  Question: String
+  ImgScr: String
+  test: String
+  type: String
+  Answer: String
+  options: [OptionObject]
+}
+
+type QuestionObjects {
+  IDQuestions: ID
+  Question: String
+  ImgScr: String
+  test: String
+  type: String
+  Answer: String
+  options: [OptionObject]
+}
+
+type OptionObject {
+  Label: String
+  Value: String
+}
+
+type Query {
+    getQuestion: [Question]
+    getQuestionCount: Int!
+    getQuestions: [Question!]!
+    getQuestionByID(id: ID!): QuestionObject
+    getQuestionnaire(test: String!): [QuestionObjects]
+
+},
+
+type Mutation {
+    createQuestion(
+      question: String,
+      test: String,
+      imgSrc: String,
+      type: String,
+      answer: String,
+      options: [OptionInput]
+    ): Question
+  },
+  input OptionInput {
+    value: String
+    label: String
+  }
+
+
 
 `

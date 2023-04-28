@@ -80,10 +80,76 @@ export const resolvers = {
 
         }
     },
+        getQuestionnaire: async (_, { test }) => {
+          try {
+            const response = await fetch(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/questionnaire/${test}`);
+            const question = await response.json();
+            console.log(question)
+            return question;
+          } catch (error) {
+            throw new Error(error.type);
+          }
+        },
+        getQuestionByID: async (_, { id }) => {
+            try {
+              const response = await fetch(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/question/${id}`);
+              const question = await response.json();
+              console.log(question)
+              return question;
+            } catch (error) {
+              throw new Error(error.type);
+            }
+          },
+          getMeetings: async () => {
+            const config = {
+              method: 'get',
+              maxBodyLength: Infinity,
+              url: 'http://localhost:8080/api/v1/interview/interviews',
+              headers: { }
+            };
+
+            try {
+              const response = await axios.request(config);
+              return response.data;
+            } catch (error) {
+              console.error(error);
+              return [];
+            }
+          }
+    },
 
     Mutation: {
 
+      convertImage: async (_, { image, width, height }) => {
+        try {
+            console.log("entré");
+          const { filename, mimetype, createReadStream } = await image;
+          const stream = createReadStream();
+          const upload = await saveImagesWithStream({ filename, mimetype, stream });
+          const data = new FormData();
+          //const filePath = path.join(uploadDir, image.filename);
+          //await image.createReadStream().pipe(fs.createWriteStream(filePath));
+          data.append('image', fs.createReadStream(`${__dirname}\\uploads\\${upload.name}`));
+          data.append('width', String(width));
+          data.append('height', String(height));
+
+          const response = await axios.post('http://localhost:9090/api/v1.0/convert_image/converter', data, {
+            headers: {
+              ...data.getHeaders()
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+          });
+          console.log(response.data);
+          return { url: response.data.downloadUrl };
+        } catch (error) {
+          console.error(error);
+          throw new Error('Failed to convert image.');
+        }
+      },
+
         compiler: async (parent, { file, language }) => {
+            console.log(file,language)
             const { filename, mimetype, createReadStream } = await file;
             let data = '';
             const stream = createReadStream();
@@ -96,10 +162,12 @@ export const resolvers = {
                     console.log(response.data.stdout);
                 })
                 .catch(function (error) {
-                    if (error.response) {
-                        data = (error.response.data.stdout)
-                    }
-                });
+
+                    !error.response.data.stdout
+                        ? data = error.response.data.error
+                        : data = error.response.data.stdout;
+
+            });
             return data
         },
         getToken: async (id_guest, name_guest, email_guest, host_guest, id_meeting) => {
@@ -127,6 +195,25 @@ export const resolvers = {
                 console.log(error);
             }
         },
+
+        async createQuestion(_, { question, test, imgSrc, type, answer, options }) {
+            try {
+              const response = await axios.post(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/question/`, {
+                question,
+                test,
+                imgSrc,
+                type,
+                answer,
+                options,
+              });
+              console.log(response.data)
+              return response.data;
+            } catch (error) {
+              console.error(error.response.data);
+              throw new Error('Failed to create question');
+            }
+          },
+
         newMeeting: async (parent, args, context, info) => {
             const config = {
                 method: 'post',
@@ -170,6 +257,8 @@ export const resolvers = {
 
 
 
+
+
         createRole: async (_, { name }) => {
             const role = new Role({
                 name
@@ -183,37 +272,37 @@ export const resolvers = {
             const userEmailSearch = await User.findOne({ 'email': email });
             //if (!userNameSearch && !userEmailSearch) {
             if (!userEmailSearch) {
-                //const hashedPassword = await bcrypt.hash(password, 10);
-                firstPassword = "hashedPassword";
-                password = '';
-                globalID = uuidv4();
-                userName = uuidv4();
-                age = 999
-                const user = new User({
-                    globalID,
-                    firstName,
-                    lastName,
-                    userName,
-                    firstPassword,
-                    password,
-                    email,
-                    phone,
-                    country,
-                    city,
-                    age,
-                    roleId,
-                    photo,
-                })
-                const client = twilio(accountSid, authToken);
+            const hashedPassword = await bcrypt.hash("", 10);
+            firstPassword = hashedPassword;
+            password = '';
+            globalID = uuidv4();
+            userName = uuidv4();
+            age = 999
+            const user = new User({
+                globalID,
+                firstName,
+                lastName,
+                userName,
+                firstPassword,
+                password,
+                email,
+                phone,
+                country,
+                city,
+                age,
+                photo,
+                roleId,
+            })
+            /*const client = twilio(accountSid, authToken);
                 client.messages
                     .create({
                         from: 'whatsapp:+14155238886',
                         body: 'Dear applicant, you are a candidate for the Pepito bootcamp, your username is the email address you used to register and your password is ' + "*" + firstPassword + "*",
                         to: "whatsapp:" + phone
                     })
-                    .then(message => console.log(message.sid, message.to));
-                const savedUser = await user.save();
-                return savedUser;
+                    .then(message => console.log(message.sid, message.to));*/
+            const savedUser = await user.save();
+            return savedUser;
             }
         },
 
@@ -224,8 +313,8 @@ export const resolvers = {
             console.log(userLogin);
             if (!userLogin || !userLogin.firstPassword) {
                 return { message: 'User not found' };
-            } else {
-                if (password === userLogin.firstPassword) {
+              } else {
+                  if (password === userLogin.firstPassword) {
                     return { message: 'Login Succesful!', info: userLogin };
                 } else {
                     return { message: 'Wrong password' };
