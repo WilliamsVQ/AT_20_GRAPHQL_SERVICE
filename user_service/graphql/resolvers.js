@@ -78,8 +78,7 @@ export const resolvers = {
                 console.log(error);
             }
 
-        }
-    },
+        },
         getQuestionnaire: async (_, { test }) => {
           try {
             const response = await fetch(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/questionnaire/${test}`);
