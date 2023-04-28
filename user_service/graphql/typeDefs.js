@@ -12,14 +12,16 @@ export const typeDefs = gql`
         note(_id: ID): Note
         notes: [Note]
         photo(filename: String): String
+        myMeetings(_id: ID): [MyMeeting]
+        meeting(_id: ID): Meeting
         getMeetings: [Meeting]
-        
+
     }
     type Mutation {
         createRole(name: String): Role
         createUser(
             globalID: String,
-            firstName: String, 
+            firstName: String,
             lastName: String,
             userName: String,
             firstPassword: String,
@@ -29,16 +31,16 @@ export const typeDefs = gql`
             country: String,
             city: String,
             age: Int,
-            roleId: ID, 
+            roleId: ID,
             photo: String): User
-        
+
         uploadNote(userId: ID, nameTest: String, answers: [String], score: String): Note
-        
+
         login(userName: String, email: String, password: String): LoginResponse
-        
-        updateRole(_id: ID, name: String): Role        
-        updateUser(_id: ID, 
-            firstName: String, 
+
+        updateRole(_id: ID, name: String): Role
+        updateUser(_id: ID,
+            firstName: String,
             lastName: String,
             userName: String,
             firstPassword: String,
@@ -55,7 +57,7 @@ export const typeDefs = gql`
         compiler(file: Upload!, language: String!): String
         convertImage(image: Upload!, width: Int!, height: Int!): ConvertedResult!
         newMeeting(data: String): String
-
+        getToken(id_guest: String, name_guest: String, email_guest: String, host_guest: Boolean, id_meeting: String): String
     }
     type Role {
         _id: ID
@@ -97,25 +99,36 @@ export const typeDefs = gql`
         score: String
     }
 
+    type Meeting {
+        _id: ID
+        meeting_name: String
+        description: String
+        date: String
+        start_time: String
+        end_time: String
+    }
+
+    type MyMeeting {
+        _id: ID
+        meeting_name: String
+        description: String
+        date: String
+        start_time: String
+        end_time: String
+    }
+
+    type Guest{
+        _id: ID
+        name: String
+        email: String
+        host: Boolean
+    }
+
+
     type ConvertedResult {
         url: String!
     }
 
-    type Meeting {
-        _id: ID!
-        id: String!
-        host_global_id: [Host!]!
-        guest_global_id: [Guest!]!
-        meeting_name: String!
-        description: String!
-        date: String!
-        start_time: String!
-        end_time: String!
-        time_zone: [TimeZone!]!
-        active: Boolean
-        createdAt: String!
-        updatedAt: String!
-    }
 
     type Host {
         id: String!
@@ -135,7 +148,7 @@ export const typeDefs = gql`
         value: String!
         label: String!
         _id: ID!
-    }   
+    }
 
 
 ##questionnaire
