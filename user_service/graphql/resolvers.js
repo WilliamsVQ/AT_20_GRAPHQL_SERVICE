@@ -39,7 +39,7 @@ export const resolvers = {
         notes: async() => await Note.find(),
         note: async(_, {_id}) => await Note.findById(_id),
         photo: (parent, { filename }, context) => {
-            const filePath = path.join(__dirname, '/uploads', filename);
+            const filePath = path.join('.', '/uploads', filename);
             console.log(filePath);
             return filePath;
         },
@@ -63,11 +63,11 @@ export const resolvers = {
               throw new Error(error.type);
             }
           },
-          getMeetings: async () => {
+        getMeetings: async () => {
             const config = {
               method: 'get',
               maxBodyLength: Infinity,
-              url: 'http://localhost:8080/api/v1/interview/interviews',
+              url: `${process.env.MEETINGS_SERVICE_URL}:${process.env.MEETINGS_SERVICE_PORT}${process.env.MEETINGS_SERVICE_INTERVIEWS_PATH}`,
               headers: { }
             };
       
@@ -85,18 +85,16 @@ export const resolvers = {
 
       convertImage: async (_, { image, width, height }) => {
         try {
-            console.log("entré");
           const { filename, mimetype, createReadStream } = await image;
           const stream = createReadStream();
           const upload = await saveImagesWithStream({ filename, mimetype, stream });
           const data = new FormData();
           //const filePath = path.join(uploadDir, image.filename);
           //await image.createReadStream().pipe(fs.createWriteStream(filePath));
-          data.append('image', fs.createReadStream(`${__dirname}\\uploads\\${upload.name}`));
+          data.append('image', fs.createReadStream(`./uploads/${upload.name}`));
           data.append('width', String(width));
           data.append('height', String(height));
-  
-          const response = await axios.post('http://localhost:9090/api/v1.0/convert_image/converter', data, {
+          const response = await axios.post(`${process.env.CONVERTER_SERVICE_URL}:${process.env.CONVERTER_SERVICE_PORT}${process.env.CONVERTER_SERVICE_IMAGE_PATH}`, data, {
             headers: { 
               ...data.getHeaders()
             },
@@ -112,29 +110,23 @@ export const resolvers = {
       },
 
         compiler: async (parent, { file, language }) => {
-            console.log(file,language)
             const { filename, mimetype, createReadStream } = await file;
             let data = '';
             const stream = createReadStream();
             const upload = await saveImagesWithStream({ filename, mimetype, stream });
             const form = new FormData();
-            form.append('file', fs.createReadStream(`${__dirname}\\uploads\\${upload.name}`));
+            form.append('file', fs.createReadStream(`./uploads/${upload.name}`));
             form.append('language', language);
-                const resp = await axios.post('http://localhost:9292/api/v1.0/compiler', form)
-                .then(function (response) {
-                    console.log(response.data.stdout);
-                })
-                .catch(function (error) {
-
-                    !error.response.data.stdout
-                        ? data = error.response.data.error
-                        : data = error.response.data.stdout;
-
-            });
+            const resp = await axios.post(`${process.env.COMPILER_SERVICE_URL}:${process.env.COMPILER_SERVICE_PORT}${process.env.COMPILER_SERVICE_PATH}`, form) 
+            .then(function (response) { console.log(response.data.stdout); data = response.data.stdout }) 
+            .catch(function (error) 
+            { console.log(error); 
+              data = error.response.data.stdout 
+              ? error.response.data.stdout 
+              : error.response.data.error; }); 
             return data
         },
-
-        async createQuestion(_, { question, test, imgSrc, type, answer, options }) {
+        createQuestion: async (_, { question, test, imgSrc, type, answer, options }) => {
             try {
               const response = await axios.post(`http://${process.env.CONTAINER_NAME_QUESTIONNAIRE}:${process.env.QUESTIONNAIRE_SERVICE_PORT}/api/v1.0/question/`, {
                 question,
@@ -156,7 +148,7 @@ export const resolvers = {
             const config = {
               method: 'post',
               maxBodyLength: Infinity,
-              url: 'http://localhost:8080/api/v1/interview/save',
+              url:`${process.env.MEETINGS_SERVICE_URL}:${process.env.MEETINGS_SERVICE_PORT}${process.env.MEETINGS_SERVICE_SAVE_PATH}`,
               headers: {
                 'Content-Type': 'application/json'
               },
@@ -165,7 +157,7 @@ export const resolvers = {
             try {
               const response = await axios.request(config);
               response.data.guest_global_id.map((item) => {
-                const client = twilio(accountSid, authToken);
+               // const client = twilio(accountSid, authToken);
                     /*client.messages
                         .create({
                             from: 'whatsapp:+14155238886',
@@ -174,7 +166,7 @@ export const resolvers = {
                         })
                         .then(message => console.log(message.sid, message.to));*/
 
-              });
+             });
               return JSON.stringify(response.data);
             } catch (error) {
               console.log(error);
@@ -204,17 +196,18 @@ export const resolvers = {
             return roleSaved
         },
 
-        createUser: async (_, {globalID, firstName, lastName, userName, firstPassword, password, email, phone, country, city, age, roleId, photo}) => {
+        createUser: async (_, {globalID, firstName, lastName, userName, password, email, phone, country, city, age, roleId, photo}) => {
             //const userNameSearch = await User.findOne({'userName': userName});
             const userEmailSearch = await User.findOne({'email':email});
             //if (!userNameSearch && !userEmailSearch) {
             if (!userEmailSearch) {
-            const hashedPassword = await bcrypt.hash("", 10);
-            firstPassword = hashedPassword;
+            const newPassword= process.env.DEF_PASSWORD;
+            //const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const firstPassword = newPassword;
             password = '';
             globalID = uuidv4();
             userName = uuidv4();
-            age = 999
+            age = '';
             const user = new User({
                 globalID,
                 firstName, 
@@ -244,14 +237,16 @@ export const resolvers = {
         },
 
         login: async(_, { userName, email, password }) =>{
-            const userNameSearch = await User.findOne({'userName':userName});
+            //const userNameSearch = await User.findOne({'userName':userName});
             const userEmailSearch = await User.findOne({'email':email});
-            const userLogin = userNameSearch || userEmailSearch;
+            const userLogin = userEmailSearch;
             console.log(userLogin);
             if (!userLogin || !userLogin.firstPassword) {
                 return { message: 'User not found' };
               } else {
                   if (password === userLogin.firstPassword) {
+                  //const validatePass= await bcrypt.compare(password, userLogin.firstPassword);
+                  //if (validatePass) {
                     return { message: 'Login Succesful!', info: userLogin };
                   } else {
                     return { message: 'Wrong password' };
